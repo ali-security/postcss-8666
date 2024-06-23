@@ -575,3 +575,25 @@ it('preserves absolute urls in sources from previous map', () => {
   expect(result2.root.source.input.file).toEqual('http://example.com/b.css')
   expect(result2.map.toJSON().sources).toEqual(['http://example.com/a.css'])
 })
+
+it('CVE-2021-23382/CVE-2021-23368 ReDoS test', () => {
+  function buildAttack (n) {
+    let ret = 'a{}'
+    for (let i = 0; i < n; i++) {
+      ret += '/*# sourceMappingURL='
+    }
+    return ret + '!'
+  }
+  let time = Date.now()
+  let timeCost
+  let attackStr = buildAttack(500_000)
+
+  try {
+    postcss.parse(attackStr)
+    timeCost = Date.now() - time
+  } catch (e) {
+    timeCost = Date.now() - time
+  }
+
+  expect(timeCost).not.toBeGreaterThan(1000)
+})
